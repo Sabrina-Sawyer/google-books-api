@@ -1,8 +1,8 @@
 import { UserInputError, AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js'; 
+import User from '../models/User'; 
 
-const signToken = (userId: string, email: string, password: string): string => {
+const signToken = (userId: string, email: string): string => {
     const payload = { userId, email };
     return jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 };
@@ -17,7 +17,7 @@ const resolvers = {
                 throw new UserInputError('Something went wrong while creating the user!');
             }
 
-            const token = signToken(user._id.toString(), user.email, user.password);
+            const token = signToken(user._id.toString(), user.email);
             return { token, user };
         },
 
@@ -36,7 +36,7 @@ const resolvers = {
                 throw new AuthenticationError('Incorrect password');
             }
 
-            const token = signToken(user._id.toString(), user.email, user.password);
+            const token = signToken(user._id.toString(), user.email);
             return { token, user };
         },
     },
