@@ -1,4 +1,3 @@
-// todo: create typeDefs of all components. add gql in front of the back tick for readibility. delete when running
 import { gql } from 'graphql-tag';
 
 const typeDefs = gql`
@@ -18,7 +17,16 @@ const typeDefs = gql`
         image: String
         link: String
     }
-    
+
+    input BookInput {
+        bookId: ID!
+        authors: [String]
+        description: String
+        title: String
+        image: String
+        link: String
+    }
+
     type Auth {
         token: ID
         user: User

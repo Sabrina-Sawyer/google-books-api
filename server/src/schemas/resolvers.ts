@@ -1,6 +1,6 @@
 import { UserInputError, AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User'; 
+import User from '../models/User.js'; 
 
 const signToken = (userId: string, email: string): string => {
     const payload = { userId, email };
