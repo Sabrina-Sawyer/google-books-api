@@ -1,13 +1,26 @@
 // src/components/BookSearch.js
 
-import React, { useState } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { searchGoogleBooks } from '../services/googleBooksService';
 
-const BookSearch = () => {
-  const [query, setQuery] = useState('');
-  const [books, setBooks] = useState([]);
+interface Book {
+  id: string;
+  volumeInfo: {
+    title: string;
+    authors?: string[];
+    description?: string;
+    imageLinks?: {
+      thumbnail: string;
+    };
+    infoLink: string;
+  };
+}
 
-  const handleSearch = async (event) => {
+const BookSearch: React.FC = () => {
+  const [query, setQuery] = useState<string>('');
+  const [books, setBooks] = useState<Book[]>([]);
+
+  const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const results = await searchGoogleBooks(query);
     setBooks(results);

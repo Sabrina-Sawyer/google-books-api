@@ -21,15 +21,72 @@ export const GET_ME = gql`
   }
 `;
 
-export const SEARCH_BOOKS = gql`
-  query SearchBooks($query: String!) {
-    searchBooks(query: $query) {
+export const GET_ALL_USERS = gql`
+  query Users {
+    users {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        description
+        title
+        image
+        link
+      }
+    }
+  }
+`;
+
+export const GET_SINGLE_USER = gql`
+  query SingleUser($userId: ID!) {
+    singleUser(_id: $userId) {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        description
+        title
+        image
+        link
+      }
+    }
+  }
+`;
+
+export const GOOGLE_BOOKS_Query = gql`
+  query GoogleBooks($query: String!) {
+    googleBooks(query: $query) {
       bookId
-      title
       authors
       description
+      title
       image
       link
+    }
+  }
+}`
+
+export const SAVED_BOOKS = gql`
+  query SavedBooks {
+    savedBooks {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        description
+        title
+        image
+        link
+      }
     }
   }
 `;

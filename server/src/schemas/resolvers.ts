@@ -1,6 +1,16 @@
 import { UserInputError, AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import User, { UserDocument } from '../models/User.js';
+import { BookDocument } from '../models/Book.js';
+
+interface Context {
+    user: { _id: string };
+}
+
+interface Auth {
+    token: string;
+    user: UserDocument;
+}
 
 // Helper function to sign JWT tokens
 const signToken = (userId: string, email: string): string => {
@@ -22,33 +32,51 @@ const resolvers = {
 
             return user;
         },
-
-        // Updated resolver for searching books using Fetch API
-        searchBooks: async (_: any, { query }: { query: string }) => {
-            try {
-                const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch books from Google API');
-                }
-                
-                const data = await response.json();
-                
-                return data.items.map((item: any) => ({
-                    bookId: item.id,
-                    authors: item.volumeInfo.authors || [],
-                    description: item.volumeInfo.description || '',
-                    title: item.volumeInfo.title || '',
-                    image: item.volumeInfo.imageLinks?.thumbnail || '',
-                    link: item.volumeInfo.infoLink,
-                }));
-            } catch (error) {
-                if (error instanceof Error) {
-                    throw new UserInputError('Error fetching books: ' + error.message);
-                } else {
-                    throw new UserInputError('Error fetching books');
-                }
+        savedBooks: async (_: any, __: any, context:Context): Promise<BookDocument[]> => {
+            if (!context.user) {
+                throw new AuthenticationError('You must be logged in');
             }
+
+            const user = await User.findById(context.user._id).populate('savedBooks');
+            if (!user) {
+                throw new UserInputError('User not found');
+            }
+
+            return user.savedBooks;
+        },
+        // Updated resolver for searching books using Fetch API
+        // searchBooks: async (_: any, { query }: { query: string }) => {
+        //     try {
+        //         const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`);
+                
+        //         if (!response.ok) {
+        //             throw new Error('Failed to fetch books from Google API');
+        //         }
+                
+        //         const data = await response.json();
+                
+        //         return data.items.map((item: any) => ({
+        //             bookId: item.id,
+        //             authors: item.volumeInfo.authors || [],
+        //             description: item.volumeInfo.description || '',
+        //             title: item.volumeInfo.title || '',
+        //             image: item.volumeInfo.imageLinks?.thumbnail || '',
+        //             link: item.volumeInfo.infoLink,
+        //         }));
+        //     } catch (error) {
+        //         if (error instanceof Error) {
+        //             throw new UserInputError('Error fetching books: ' + error.message);
+        //         } else {
+        //             throw new UserInputError('Error fetching books');
+        //         }
+        //     }
+        // },
+        users: async (): Promise<UserDocument[]> => {
+            return User.find({});
+        },
+        singleUser: async (_: any, { userId }: { userId: string }): Promise<UserDocument | null> => {
+            const params = userId ? { _id: userId } : {};
+            return User.findOne(params);
         },
     },
 
@@ -98,9 +126,9 @@ const resolvers = {
                 throw new AuthenticationError('You must be logged in');
             }
 
-            const updatedUser = await User.findByIdAndUpdate(
-                context.user._id,
-                { $addToSet: { savedBooks: bookData } },
+            const updatedUser = await User.findOneAndUpdate(
+                {_id: context.user._id},
+                { $pull: { savedBooks: { bookId: bookData.bookId } } },
                 { new: true }
             ).populate('savedBooks');
 
