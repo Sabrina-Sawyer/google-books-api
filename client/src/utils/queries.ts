@@ -1,38 +1,17 @@
 import { gql } from '@apollo/client';
 
-// src/graphql/queries.ts
-
-export const GET_ME = gql`
-  query Me {
-    me {
-      _id
-      username
-      email
-      bookCount
-      savedBooks {
-        bookId
-        authors
-        description
-        title
-        image
-        link
-      }
-    }
-  }
-`;
-
+// Query to get all users.
 export const GET_ALL_USERS = gql`
-  query Users {
+  query GetAllUsers {
     users {
-      _id
+      userId
       username
       email
-      bookCount
       savedBooks {
         bookId
+        title
         authors
         description
-        title
         image
         link
       }
@@ -40,18 +19,18 @@ export const GET_ALL_USERS = gql`
   }
 `;
 
+// Query to get a specific user by ID.
 export const GET_SINGLE_USER = gql`
-  query SingleUser($userId: ID!) {
-    singleUser(_id: $userId) {
-      _id
+  query GetSingleUser($userId: ID!) {
+    user(userId: $userId) {
+      userId
       username
       email
-      bookCount
       savedBooks {
         bookId
+        title
         authors
         description
-        title
         image
         link
       }
@@ -59,31 +38,18 @@ export const GET_SINGLE_USER = gql`
   }
 `;
 
-export const GOOGLE_BOOKS_Query = gql`
-  query GoogleBooks($query: String!) {
-    googleBooks(query: $query) {
-      bookId
-      authors
-      description
-      title
-      image
-      link
-    }
-  }
-}`
-
-export const SAVED_BOOKS = gql`
-  query SavedBooks {
-    savedBooks {
-      _id
+// Query to get the current logged-in user’s data.
+export const GET_ME = gql`
+  query GetMe {
+    me {
+      userId
       username
       email
-      bookCount
       savedBooks {
         bookId
+        title
         authors
         description
-        title
         image
         link
       }
@@ -91,7 +57,19 @@ export const SAVED_BOOKS = gql`
   }
 `;
 
-
-
-
-// todo: the queries to the backend for all data or data by ID
+// Query to search books using Google Books API.
+export const GOOGLE_BOOKS_QUERY = gql`
+  query GoogleBooksQuery($query: String!) {
+    searchBooks(query: $query) {
+      id
+      volumeInfo {
+        title
+        authors
+        description
+        imageLinks {
+          thumbnail
+        }
+      }
+    }
+  }
+`;

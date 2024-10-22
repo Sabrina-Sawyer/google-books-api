@@ -4,7 +4,7 @@ import bookSchema from './Book.js';
 import type { BookDocument } from './Book.js';
 
 export interface UserDocument extends Document {
-  id: string;
+  userId: string; // Renamed from `id` to `userId` for consistency.
   username: string;
   email: string;
   password: string;
@@ -15,6 +15,11 @@ export interface UserDocument extends Document {
 
 const userSchema = new Schema<UserDocument>(
   {
+    userId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     username: {
       type: String,
       required: true,
