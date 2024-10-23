@@ -1,134 +1,92 @@
-import { UserInputError, AuthenticationError } from 'apollo-server-express';
-import jwt from 'jsonwebtoken';
+import { AuthenticationError, UserInputError } from 'apollo-server-express';
+import { Request } from 'express';
 import User, { UserDocument } from '../models/User.js';
 import { BookDocument } from '../models/Book.js';
+import { signToken } from '../services/auth.js'; // Import the signToken function
 
+// Define the custom type for the context
 interface Context {
-    user: { _id: string };
+    req: Request;
 }
 
-interface Auth {
+// Updated Auth Payload type
+interface AuthPayload {
     token: string;
     user: UserDocument;
 }
 
-// Helper function to sign JWT tokens
-const signToken = (userId: string, email: string): string => {
-    const payload = { userId, email };
-    return jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1h' });
-};
-
+// Resolvers
 const resolvers = {
     Query: {
-        me: async (_: any, __: any, context: { user: { _id: string } }) => {
-            if (!context.user) {
+        me: async (_: unknown, __: unknown, context: Context): Promise<UserDocument | null> => {
+            const user = context.req.user;
+
+            if (!user) {
                 throw new AuthenticationError('You must be logged in');
             }
 
-            const user = await User.findById(context.user._id).populate('savedBooks');
-            if (!user) {
+            const foundUser = await User.findById(user._id).populate('savedBooks');
+            if (!foundUser) {
                 throw new UserInputError('User not found');
             }
 
-            return user;
+            return foundUser;
         },
-        savedBooks: async (_: any, __: any, context:Context): Promise<BookDocument[]> => {
-            if (!context.user) {
-                throw new AuthenticationError('You must be logged in');
-            }
 
-            const user = await User.findById(context.user._id).populate('savedBooks');
-            if (!user) {
-                throw new UserInputError('User not found');
-            }
-
-            return user.savedBooks;
-        },
-        // Updated resolver for searching books using Fetch API
-        // searchBooks: async (_: any, { query }: { query: string }) => {
-        //     try {
-        //         const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`);
-                
-        //         if (!response.ok) {
-        //             throw new Error('Failed to fetch books from Google API');
-        //         }
-                
-        //         const data = await response.json();
-                
-        //         return data.items.map((item: any) => ({
-        //             bookId: item.id,
-        //             authors: item.volumeInfo.authors || [],
-        //             description: item.volumeInfo.description || '',
-        //             title: item.volumeInfo.title || '',
-        //             image: item.volumeInfo.imageLinks?.thumbnail || '',
-        //             link: item.volumeInfo.infoLink,
-        //         }));
-        //     } catch (error) {
-        //         if (error instanceof Error) {
-        //             throw new UserInputError('Error fetching books: ' + error.message);
-        //         } else {
-        //             throw new UserInputError('Error fetching books');
-        //         }
-        //     }
-        // },
         users: async (): Promise<UserDocument[]> => {
             return User.find({});
         },
-        singleUser: async (_: any, { userId }: { userId: string }): Promise<UserDocument | null> => {
-            const params = userId ? { _id: userId } : {};
-            return User.findOne(params);
+
+        singleUser: async (
+            _: unknown,
+            { _id }: { _id: string } // Changed userId to _id
+        ): Promise<UserDocument | null> => {
+            return User.findById(_id); // Changed userId to _id
         },
     },
 
     Mutation: {
         addUser: async (
-            _: any,
+            _: unknown,
             { username, email, password }: { username: string; email: string; password: string }
-        ) => {
+        ): Promise<AuthPayload> => {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
                 throw new UserInputError('Email already in use');
             }
 
-            const user = await User.create({ username, email, password });
-            if (!user) {
-                throw new UserInputError('Error creating user');
-            }
-
-            const token = signToken((user._id as string).toString(), user.email);
-            return { token, user };
+            const newUser = await User.create({ username, email, password });
+            const token = signToken(newUser.username, newUser.email, newUser._id.toString()); // Ensure _id is string
+            return { token, user: newUser };
         },
 
         login: async (
-            _: any,
+            _: unknown,
             { email, password }: { email: string; password: string }
-        ) => {
-            const user = await User.findOne({ $or: [{ email }, { username: email }] }) as { _id: string, email: string, isCorrectPassword: (password: string) => Promise<boolean> };
-            if (!user) {
-                throw new AuthenticationError("Can't find this user");
+        ): Promise<AuthPayload> => {
+            const user = await User.findOne({ email }) as UserDocument;
+            if (!user || !(await user.isCorrectPassword(password))) {
+                throw new AuthenticationError('Invalid email or password');
             }
 
-            const isCorrectPassword = await user.isCorrectPassword(password);
-            if (!isCorrectPassword) {
-                throw new AuthenticationError('Incorrect password');
-            }
-
-            const token = signToken(user._id.toString(), user.email);
+            const token = signToken(user.username, user.email, user._id.toString()); // Ensure _id is string
             return { token, user };
         },
 
         saveBook: async (
-            _: any,
-            { bookData }: { bookData: { bookId: string; authors: string[]; description: string; title: string; image: string; link: string } },
-            context: { user: { _id: string } }
-        ) => {
-            if (!context.user) {
+            _: unknown,
+            { bookData }: { bookData: BookDocument },
+            context: Context
+        ): Promise<UserDocument> => {
+            const user = context.req.user;
+
+            if (!user) {
                 throw new AuthenticationError('You must be logged in');
             }
 
-            const updatedUser = await User.findOneAndUpdate(
-                {_id: context.user._id},
-                { $pull: { savedBooks: { bookId: bookData.bookId } } },
+            const updatedUser = await User.findByIdAndUpdate(
+                user._id,
+                { $addToSet: { savedBooks: bookData } },
                 { new: true }
             ).populate('savedBooks');
 
@@ -140,16 +98,18 @@ const resolvers = {
         },
 
         removeBook: async (
-            _: any,
+            _: unknown,
             { bookId }: { bookId: string },
-            context: { user: { _id: string } }
-        ) => {
-            if (!context.user) {
+            context: Context
+        ): Promise<UserDocument> => {
+            const user = context.req.user;
+
+            if (!user) {
                 throw new AuthenticationError('You must be logged in');
             }
 
             const updatedUser = await User.findByIdAndUpdate(
-                context.user._id,
+                user._id,
                 { $pull: { savedBooks: { bookId } } },
                 { new: true }
             ).populate('savedBooks');

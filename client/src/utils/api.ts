@@ -11,7 +11,7 @@ import {
     SAVE_BOOK,
     REMOVE_BOOK,
 } from './mutations';
-import type { User } from '../models/User';
+import type { RegisterUserInput } from '../models/User';
 import type { GoogleAPIBook } from '../models/GoogleAPIBook';
 
 // Fetch all users.
@@ -50,9 +50,16 @@ export const getMe = () => {
 export const useRegisterUser = () => {
     const [addUser] = useMutation(ADD_USER);
 
-    const registerUser = async (userData: User) => {
-        const { data } = await addUser({ variables: userData });
-        return data;
+    const registerUser = async (userData: RegisterUserInput) => {
+        const { data } = await addUser({
+            variables: {
+                username: userData.username,
+                email: userData.email,
+                password: userData.password,
+            },
+        });
+
+        return data.addUser; // Adjust to return the added user object including _id
     };
 
     return { registerUser };
@@ -95,13 +102,19 @@ export const useRemoveBook = () => {
 };
 
 // Search books using the Google Books API.
-export const searchGoogleBooks = (query: string) => {
-    const { loading, error, data } = useQuery(GOOGLE_BOOKS_QUERY, {
+interface GoogleBooksResult {
+    loading: boolean;
+    error: Error | null;
+    data: GoogleAPIBook[] | null;
+}
+
+export const useGoogleBooks = (query: string): GoogleBooksResult => {
+    const { loading, error, data } = useQuery<{ googleBooks: GoogleAPIBook[] }>(GOOGLE_BOOKS_QUERY, {
         variables: { query },
+        skip: !query, // Skip the query if the query string is empty
     });
 
     if (loading) return { loading, error: null, data: null };
     if (error) return { loading: false, error, data: null };
-
-    return { loading: false, error: null, data };
+    return { loading: false, error: null, data: data?.googleBooks || null };
 };

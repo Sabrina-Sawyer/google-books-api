@@ -18,8 +18,8 @@ const LoginForm = () => {
     const { email, password } = formState;
 
     try {
-      const data = await loginUser(email, password);
-      Auth.login(data.login.token); // Use the token returned from the login mutation
+      const { login } = await loginUser(email, password); // Adjust according to your login mutation structure
+      Auth.login(login.token); // Use the token returned from the login mutation
     } catch (err) {
       setErrorMessage('Invalid credentials. Please try again.');
     }

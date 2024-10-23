@@ -5,18 +5,17 @@ import { REMOVE_BOOK } from '../utils/mutations'; // Import your REMOVE_BOOK mut
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 
 const SavedBooks = () => {
-    const { loading, error, data } = useQuery(GET_ME);
-    const [deleteBook] = useMutation(REMOVE_BOOK);
+    const { loading, error, data } = useQuery(GET_ME); // Fetch user data including saved books
+    const [deleteBook] = useMutation(REMOVE_BOOK); // Use mutation to remove a book
 
     const handleDeleteBook = async (bookId: string) => {
         try {
             await deleteBook({
                 variables: { bookId },
-                // Optionally, update the cache to remove the deleted book
-                refetchQueries: [{ query: GET_ME }], // Refetch GET_ME to update saved books list
+                refetchQueries: [{ query: GET_ME }], // Refetch user data to update saved books list
             });
         } catch (err) {
-            console.error(err);
+            console.error('Error deleting book:', err);
         }
     };
 

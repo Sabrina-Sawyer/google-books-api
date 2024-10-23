@@ -11,11 +11,11 @@ const typeDefs = gql`
   }
 
   type User {
-    _id: ID!
+    _id: ID!            # Ensure _id is used instead of userId
     username: String!
     email: String!
     bookCount: Int
-    savedBooks: [Book]
+    savedBooks: [Book]!
   }
 
   input BookInput {
@@ -29,14 +29,13 @@ const typeDefs = gql`
 
   type Auth {
     token: ID!
-    user: User
+    user: User!
   }
 
   type Query {
-    user: [User]
-    singleUser(_id: ID!): User
     me: User
-    savedBooks: User
+    users: [User!]!
+    singleUser(_id: ID!): User  # Keep _id for consistency
   }
 
   type Mutation {
@@ -48,4 +47,3 @@ const typeDefs = gql`
 `;
 
 export default typeDefs;
-

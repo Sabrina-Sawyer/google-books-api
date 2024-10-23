@@ -1,10 +1,11 @@
-import { Schema, model, type Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 import bookSchema from './Book.js';
 import type { BookDocument } from './Book.js';
 
+// Update UserDocument to use Types.ObjectId for _id
 export interface UserDocument extends Document {
-  userId: string; // Renamed from `id` to `userId` for consistency.
+  _id: Types.ObjectId; // Change _id to Types.ObjectId
   username: string;
   email: string;
   password: string;
@@ -15,11 +16,6 @@ export interface UserDocument extends Document {
 
 const userSchema = new Schema<UserDocument>(
   {
-    userId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     username: {
       type: String,
       required: true,
@@ -35,10 +31,8 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       required: true,
     },
-    // set savedBooks to be an array of data that adheres to the bookSchema
     savedBooks: [bookSchema],
   },
-  // set this to use virtual below
   {
     toJSON: {
       virtuals: true,
@@ -46,7 +40,7 @@ const userSchema = new Schema<UserDocument>(
   }
 );
 
-// hash user password
+// Hash user password
 userSchema.pre<UserDocument>('save', async function (next) {
   if (this.isNew || this.isModified('password')) {
     const saltRounds = 10;
@@ -56,12 +50,12 @@ userSchema.pre<UserDocument>('save', async function (next) {
   next();
 });
 
-// custom method to compare and validate password for logging in
+// Custom method to compare and validate password for logging in
 userSchema.methods.isCorrectPassword = async function (password: string) {
   return await bcrypt.compare(password, this.password);
 };
 
-// when we query a user, we'll also get another field called `bookCount` with the number of saved books we have
+// Virtual field to get the count of saved books
 userSchema.virtual('bookCount').get(function () {
   return this.savedBooks.length;
 });

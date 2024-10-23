@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 export const GET_ALL_USERS = gql`
   query GetAllUsers {
     users {
-      userId
+      _id   // Changed from userId to _id
       username
       email
       savedBooks {
@@ -21,9 +21,9 @@ export const GET_ALL_USERS = gql`
 
 // Query to get a specific user by ID.
 export const GET_SINGLE_USER = gql`
-  query GetSingleUser($userId: ID!) {
-    user(userId: $userId) {
-      userId
+  query GetSingleUser($_id: ID!) { // Changed userId to _id
+    user(_id: $_id) {  // Changed userId to _id
+      _id   // Changed from userId to _id
       username
       email
       savedBooks {
@@ -42,7 +42,7 @@ export const GET_SINGLE_USER = gql`
 export const GET_ME = gql`
   query GetMe {
     me {
-      userId
+      _id   // Changed from userId to _id
       username
       email
       savedBooks {
@@ -60,7 +60,7 @@ export const GET_ME = gql`
 // Query to search books using Google Books API.
 export const GOOGLE_BOOKS_QUERY = gql`
   query GoogleBooksQuery($query: String!) {
-    searchBooks(query: $query) {
+    googleBooks(query: $query) {
       id
       volumeInfo {
         title

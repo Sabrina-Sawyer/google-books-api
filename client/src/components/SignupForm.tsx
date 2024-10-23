@@ -20,10 +20,10 @@ const SignupForm = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const { username, email, password } = formState;
-
+    
         try {
-            const data = await registerUser({ username, email, password, savedBooks: [] });
-            Auth.login(data.addUser.token); // Use the token returned from the registration mutation
+            const data = await registerUser({ username, email, password });
+            Auth.login(data._id); // Use the _id returned from the registration mutation
         } catch (err) {
             setErrorMessage('Failed to sign up. Please try again.');
         }

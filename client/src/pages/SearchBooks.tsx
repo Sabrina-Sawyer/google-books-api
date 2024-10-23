@@ -1,24 +1,18 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import {
-    Container,
-    Col,
-    Form,
-    Button,
-    Card,
-    Row,
-} from 'react-bootstrap';
+import { Container, Col, Form, Button, Card, Row } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
 import { SAVE_BOOK } from '../utils/mutations';
-import { searchGoogleBooks } from '../utils/api';
+import { useGoogleBooks} from '../utils/api.js';
 import Auth from '../utils/auth';
-import type { Book } from '../models/Book';
-import type { GoogleAPIBook } from '../models/GoogleAPIBook';
+import { GoogleAPIBook } from '../models/GoogleAPIBook'; // Assuming this is where your GoogleAPIBook type is defined
+import { Book } from '../models/Book'; // Import the Book type
+import { GOOGLE_BOOKS_QUERY } from '../utils/queries'; // Ensure this is correct
 
 const SearchBooks = () => {
     const [searchedBooks, setSearchedBooks] = useState<Book[]>([]);
     const [searchInput, setSearchInput] = useState('');
-    const [saveBook] = useMutation(SAVE_BOOK); // Using mutation to save books
+    const [saveBook] = useMutation(SAVE_BOOK);
 
     const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -28,38 +22,28 @@ const SearchBooks = () => {
         }
     
         try {
-            // Call the searchGoogleBooks function
-            const { loading, error, data } = searchGoogleBooks(searchInput);
+            // Fetch books using the custom hook
+            const { loading, error, data } = await useGoogleBooks(searchInput);
     
-            // Check for loading state
-            if (loading) {
-                console.log('Loading...');
-                return;
-            }
-    
-            // Check for errors
+            if (loading) return; // Optionally handle loading state
             if (error) {
                 console.error('Error fetching books:', error);
                 return;
             }
     
-            // Ensure data is available and contains searchBooks
-            if (data && data.searchBooks) {
-                const bookData = data.searchBooks.map((book: GoogleAPIBook) => ({
+            if (data) {
+                const bookData: Book[] = data.map((book: GoogleAPIBook) => ({
                     bookId: book.id,
                     authors: book.volumeInfo.authors || ['No author to display'],
                     title: book.volumeInfo.title,
                     description: book.volumeInfo.description,
                     image: book.volumeInfo.imageLinks?.thumbnail || '',
+                    link: book.volumeInfo.infoLink || '', // Assuming infoLink contains the book link
                 }));
     
                 setSearchedBooks(bookData);
-            } else {
-                console.error('No books found');
+                setSearchInput('');
             }
-    
-            // Clear the search input
-            setSearchInput('');
         } catch (err) {
             console.error('Error during search:', err);
         }
@@ -80,15 +64,14 @@ const SearchBooks = () => {
 
         try {
             const { data } = await saveBook({
-                variables: { input: { ...bookToSave } }, // Adjust as necessary to match your mutation input
+                variables: { bookData: { ...bookToSave } },
             });
 
             if (!data) {
-                throw new Error('something went wrong!');
+                throw new Error('Something went wrong!');
             }
-            // Optionally handle any state updates or side effects here
         } catch (err) {
-            console.error(err);
+            console.error('Error saving book:', err);
         }
     };
 
