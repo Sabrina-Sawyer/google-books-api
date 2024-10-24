@@ -1,7 +1,7 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 import bookSchema from './Book.js';
-import type { BookDocument } from './Book.js';
+// import type { BookDocument } from './Book.js';
 
 // Update UserDocument to use Types.ObjectId for _id
 export interface UserDocument extends Document {
@@ -9,7 +9,7 @@ export interface UserDocument extends Document {
   username: string;
   email: string;
   password: string;
-  savedBooks: BookDocument[];
+  savedBooks: Schema.Types.ObjectId[];
   isCorrectPassword(password: string): Promise<boolean>;
   bookCount: number;
 }

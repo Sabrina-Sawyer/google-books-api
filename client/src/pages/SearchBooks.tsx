@@ -7,7 +7,7 @@ import { useGoogleBooks} from '../utils/api.js';
 import Auth from '../utils/auth';
 import { GoogleAPIBook } from '../models/GoogleAPIBook'; // Assuming this is where your GoogleAPIBook type is defined
 import { Book } from '../models/Book'; // Import the Book type
-import { GOOGLE_BOOKS_QUERY } from '../utils/queries'; // Ensure this is correct
+// import { GOOGLE_BOOKS_QUERY } from '../utils/queries'; // Ensure this is correct
 
 const SearchBooks = () => {
     const [searchedBooks, setSearchedBooks] = useState<Book[]>([]);

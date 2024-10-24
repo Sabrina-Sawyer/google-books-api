@@ -4,7 +4,7 @@ import App from './App.js';
 import SearchBooks from './pages/SearchBooks.js';
 import SavedBooks from './pages/SavedBooks.js';
 import React from 'react';
-import "bootstrap/dist/css/bootstrap.min.css"
+
 
 const router = createBrowserRouter([
     {

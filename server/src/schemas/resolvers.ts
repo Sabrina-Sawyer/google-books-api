@@ -1,7 +1,7 @@
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { Request } from 'express';
 import User, { UserDocument } from '../models/User.js';
-import { BookDocument } from '../models/Book.js';
+import Book, { BookDocument } from '../models/Book.js';
 import { signToken } from '../services/auth.js'; // Import the signToken function
 
 // Define the custom type for the context
@@ -13,6 +13,10 @@ interface Context {
 interface AuthPayload {
     token: string;
     user: UserDocument;
+}
+
+interface BookArgs {
+    searchInput: string;
 }
 
 // Resolvers
@@ -42,6 +46,20 @@ const resolvers = {
             { _id }: { _id: string } // Changed userId to _id
         ): Promise<UserDocument | null> => {
             return User.findById(_id); // Changed userId to _id
+        },
+        searchBooks: async (_parent: any, { searchInput }: BookArgs) => {
+            const books = await Book.find({
+                $or: [
+                    { title: { $regex: searchInput, $options: 'i' } },
+                    { authors: { $regex: searchInput, $options: 'i' } },
+                    { description: { $regex: searchInput, $options: 'i' } },
+                ],
+            });
+
+            if (!books) {
+                throw new Error('Cannot find any books');
+            }
+            return books;
         },
     },
 

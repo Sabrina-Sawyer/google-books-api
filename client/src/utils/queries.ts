@@ -73,3 +73,17 @@ export const GOOGLE_BOOKS_QUERY = gql`
     }
   }
 `;
+
+export const SEARCH_BOOKS = gql`
+  query searchBooks($search: String!) {
+    searchBooks(search: $search) {
+      _id
+      bookId
+      authors
+      description
+      title
+      image
+      link
+    }
+  }
+`;

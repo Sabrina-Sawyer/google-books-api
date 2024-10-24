@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_ME } from '../utils/queries'; // Import your GET_ME query
-import { Book } from '../models/Book'; // Import your Book interface
+import { Book } from '../models/Book.js'; // Import your Book interface
 import { REMOVE_BOOK } from '../utils/mutations'; // Import your REMOVE_BOOK mutation
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 
