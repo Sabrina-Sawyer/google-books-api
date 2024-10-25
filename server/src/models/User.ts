@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
-import bookSchema from './Book.js';
+import { bookSchema } from './Book.js';
 // import type { BookDocument } from './Book.js';
 
 // Update UserDocument to use Types.ObjectId for _id

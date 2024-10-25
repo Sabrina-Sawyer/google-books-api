@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Container, Col, Form, Button, Card, Row } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
 import { SAVE_BOOK } from '../utils/mutations';
-import { useGoogleBooks} from '../utils/api.js';
+import { searchGoogleBooks} from '../utils/api.js';
 import Auth from '../utils/auth';
 import { GoogleAPIBook } from '../models/GoogleAPIBook'; // Assuming this is where your GoogleAPIBook type is defined
 import { Book } from '../models/Book'; // Import the Book type
@@ -23,7 +23,7 @@ const SearchBooks = () => {
     
         try {
             // Fetch books using the custom hook
-            const { loading, error, data } = await useGoogleBooks(searchInput);
+            const { loading, error, data } = await searchGoogleBooks(searchInput);
     
             if (loading) return; // Optionally handle loading state
             if (error) {
