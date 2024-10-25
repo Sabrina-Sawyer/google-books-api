@@ -1,5 +1,6 @@
 import './App.css';
 import { Outlet } from 'react-router-dom';
+import Navbar from './components/Navbar.js';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 
 const client = new ApolloClient({
@@ -7,14 +8,12 @@ const client = new ApolloClient({
     cache: new InMemoryCache(),
 });
 
-// todo: Note: all pages will render via <outlet> unless I set that up differently
 
 function App() {
     return (
         <ApolloProvider client={client}>
-            <div className="flex-column justify-center align-center min-100-vh bg-primary">
+            <Navbar />
                 <Outlet />
-            </div>
         </ApolloProvider>
     );
 }

@@ -1,3 +1,4 @@
+// use this to decode a token and get the user's information out of it
 import { jwtDecode } from 'jwt-decode';
 
 interface UserToken {
@@ -9,13 +10,13 @@ interface UserToken {
 class AuthService {
   // get user data
   getProfile() {
-    return jwtDecode(this.getAuthToken() || '');
+    return jwtDecode(this.getToken() || '');
   }
 
   // check if user's logged in
   loggedIn() {
     // Checks if there is a saved token and it's still valid
-    const token = this.getAuthToken();
+    const token = this.getToken();
     return !!token && !this.isTokenExpired(token); // handwaiving here
   }
 
@@ -26,14 +27,14 @@ class AuthService {
       if (decoded.exp < Date.now() / 1000) {
         return true;
       } 
-
+      
       return false;
     } catch (err) {
       return false;
     }
   }
 
-  getAuthToken() {
+  getToken() {
     // Retrieves the user token from localStorage
     return localStorage.getItem('id_token');
   }
