@@ -16,6 +16,10 @@ interface AuthPayload {
 }
 
 interface BookArgs {
+    bookId: string;
+}
+
+interface searchBookArgs {
     searchInput: string;
 }
 
@@ -47,7 +51,16 @@ const resolvers = {
         ): Promise<UserDocument | null> => {
             return User.findById(_id); // Changed userId to _id
         },
-        searchBooks: async (_parent: any, { searchInput }: BookArgs) => {
+
+        books: async () => {
+            return await Book.find().sort({ createdAt: -1 });
+        },
+
+        book: async (_parent: any, { bookId }: BookArgs) => {
+            return Book.findOne({ bookId });
+        },
+
+        searchBooks: async (_parent: any, { searchInput }: searchBookArgs) => {
             const books = await Book.find({
                 $or: [
                     { title: { $regex: searchInput, $options: 'i' } },
