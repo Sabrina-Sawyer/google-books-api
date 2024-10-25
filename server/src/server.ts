@@ -1,4 +1,4 @@
-import express, { Response } from 'express';
+import express from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import path from 'path';
@@ -19,24 +19,29 @@ const startServer = async () => {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
 
-    app.use(
-        '/graphql',
-        expressMiddleware(server, {
-            context: async ({ req }) => {
-                // Ensure headers are provided to the token function
-                await new Promise((resolve, reject) =>
-                    authenticateToken(req, {} as Response<any, Record<string, any>>, (err) => {
-                        if (err) reject(err); // Reject if an error occurs
-                        resolve(null); // Resolve if token verification passes or no auth header
-                    })
-                );
+    // app.use(
+    //     '/graphql',
+    //     expressMiddleware(server, {
+    //         context: async ({ req }) => {
+    //             // Ensure headers are provided to the token function
+    //             await new Promise((resolve, reject) =>
+    //                 authenticateToken(req, {} as Response<any, Record<string, any>>, (err) => {
+    //                     if (err) reject(err); // Reject if an error occurs
+    //                     resolve(null); // Resolve if token verification passes or no auth header
+    //                 })
+    //             );
 
-                // Return context, even without a user (for public access)
-                return { req, user: req.user || null };
-            },
-        })
-    );
-
+    //             // Return context, even without a user (for public access)
+    //             return { req, user: req.user || null };
+    //         },
+    //     })
+    // );
+    app.use('/graphql', expressMiddleware(server as any,
+        {
+            context: authenticateToken as any
+        }
+    ));
+    
     // Serve static assets in production
     if (process.env.NODE_ENV === 'production') {
         app.use(express.static(path.join(__dirname, '../client/dist')));

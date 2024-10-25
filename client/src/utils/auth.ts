@@ -1,50 +1,53 @@
-import { type JwtPayload, decode } from "jsonwebtoken";
+import { jwtDecode } from 'jwt-decode';
 
-// Extended JWT structure to include user data.
-interface ExtendedJwt extends JwtPayload {
-  data: {
-    _id: string;
-    email: string;
-    username: string;
-  };
+interface UserToken {
+  name: string;
+  exp: number;
 }
 
+// create a new class to instantiate for a user
 class AuthService {
-  // Decode the token to extract user data.
+  // get user data
   getProfile() {
-    return (decode(localStorage.getItem('id_token') || '') as ExtendedJwt)?.data;
+    return jwtDecode(this.getAuthToken() || '');
   }
 
-  // Check if the user is logged in.
+  // check if user's logged in
   loggedIn() {
+    // Checks if there is a saved token and it's still valid
     const token = this.getAuthToken();
-    return !!token && !this.isTokenExpired(token);
+    return !!token && !this.isTokenExpired(token); // handwaiving here
   }
 
-  // Check if the token is expired.
-  isTokenExpired(token: string): boolean {
+  // check if token is expired
+  isTokenExpired(token: string) {
     try {
-      const decoded = decode(token) as JwtPayload;
-      return decoded.exp ? Date.now() >= decoded.exp * 1000 : false;
+      const decoded = jwtDecode<UserToken>(token);
+      if (decoded.exp < Date.now() / 1000) {
+        return true;
+      } 
+
+      return false;
     } catch (err) {
-      return true;
+      return false;
     }
   }
 
-  // Get the authentication token from localStorage.
   getAuthToken() {
+    // Retrieves the user token from localStorage
     return localStorage.getItem('id_token');
   }
 
-  // Store the token and redirect the user.
   login(idToken: string) {
+    // Saves user token to localStorage
     localStorage.setItem('id_token', idToken);
     window.location.assign('/');
   }
 
-  // Remove the token and log out the user.
   logout() {
+    // Clear user token and profile data from localStorage
     localStorage.removeItem('id_token');
+    // this will reload the page and reset the state of the application
     window.location.assign('/');
   }
 }

@@ -11,7 +11,7 @@ const typeDefs = gql`
   }
 
   type User {
-    _id: ID!            # Ensure _id is used instead of userId
+    _id: ID!
     username: String!
     email: String!
     bookCount: Int
@@ -36,7 +36,7 @@ const typeDefs = gql`
     searchBooks(searchInput: String!): [Book]!
     me: User
     users: [User!]!
-    singleUser(_id: ID!): User  # Keep _id for consistency
+    singleUser(_id: ID!): User
     books: [Book]
     book(bookId: String!): Book
   }
