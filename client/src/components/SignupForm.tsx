@@ -53,13 +53,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ handleModalClose }) => {
 
     try {
       const { data } = await addUser({
-          variables: {
-              input: {
-                  username: userFormData.username,
-                  email: userFormData.email,
-                  password: userFormData.password,
-              },
-          },
+          variables: userFormData
       });
 
       Auth.login(data.addUser.token);
