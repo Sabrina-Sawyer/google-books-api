@@ -2,13 +2,16 @@ import { gql } from '@apollo/client';
 
 // Mutation to add a new user.
 export const ADD_USER = gql`
-  mutation AddUser($username: String!, $email: String!, $password: String!) {
-    addUser(username: $username, email: $email, password: $password) {
-      _id
+mutation AddUser($username: String!, $email: String!, $password: String!) {
+  addUser(username: $username, email: $email, password: $password) {
+    token
+    user {
       username
       email
+      _id
     }
   }
+}
 `;
 
 // Mutation to log in a user.
